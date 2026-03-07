@@ -3,63 +3,80 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ClientResource\Pages;
-use App\Filament\Resources\ClientResource\RelationManagers;
 use App\Models\Client;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\DatePicker; 
 
 class ClientResource extends Resource
 {
     protected static ?string $model = Client::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users'; // Icon lebih relevan
 
     public static function form(Form $form): Form
-{
-    return $form
-        ->schema([
-            Forms\Components\TextInput::make('name')
-                ->required(),
-            Forms\Components\TextInput::make('email')
-                ->email(),
-            Forms\Components\TextInput::make('company_name')
-                ->label('Nama Perusahaan'), 
-            Forms\Components\DatePicker::make('join_date')
-                ->default(now()) 
-                ->required(),    
-        ]);
-}
+    {
+        return $form
+            ->schema([
+                Forms\Components\Section::make('Informasi Dasar')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nama Lengkap')
+                            ->required(),
+                        Forms\Components\TextInput::make('company_name')
+                            ->label('Nama Perusahaan'),
+                        Forms\Components\DatePicker::make('join_date')
+                            ->default(now())
+                            ->required(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Kontak & Komunikasi')
+                    ->schema([
+                        Forms\Components\TextInput::make('email')
+                            ->email()
+                            ->placeholder('contoh@vodeco.id'),
+                        Forms\Components\TextInput::make('whatsapp')
+                            ->label('Nomor WhatsApp')
+                            ->tel()
+                            ->placeholder('0812xxxx')
+                            ->prefix('+62'), // Biar standar Indonesia
+                    ])->columns(2),
+            ]);
+    }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('client_code')
+                    ->label('ID Klien')
+                    ->searchable()
+                    ->sortable()
+                    ->badge()
+                    ->color('primary'),
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->label('Nama Klien')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('company_name')
-                    ->label('Company')
-                    ->searchable(),
+                    ->label('Perusahaan')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->label('Email')
+                    ->copyable() // Bisa langsung copy email sekali klik
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('whatsapp')
+                    ->label('WhatsApp')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('join_date')
+                    ->label('Tgl Bergabung')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                //
-            ])
+            ->defaultSort('created_at', 'desc') // <-- OTOMATIS TERBARU DI ATAS
+            ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -68,13 +85,6 @@ class ClientResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

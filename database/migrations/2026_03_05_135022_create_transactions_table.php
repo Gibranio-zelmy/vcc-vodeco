@@ -13,7 +13,7 @@ return new class extends Migration
 {
     Schema::create('transactions', function (Blueprint $table) {
         $table->id();
-        $table->date('transaction_date');
+        $table->date('transaction_date')->default(now());
         $table->enum('type', ['income', 'expense']); // Pemasukan atau Pengeluaran
         $table->string('category'); // Misal: 'Server', 'Gaji Tim', 'Invoice Klien'
         $table->decimal('amount', 15, 2); // Kapasitas hingga triliunan rupiah

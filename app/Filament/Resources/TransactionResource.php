@@ -24,6 +24,8 @@ class TransactionResource extends Resource
         return $form
             ->schema([
                 Forms\Components\DatePicker::make('transaction_date')
+                    ->label('Tanggal Transaksi')
+                    ->default(now())
                     ->required(),
                 Forms\Components\TextInput::make('type')
                     ->required()
