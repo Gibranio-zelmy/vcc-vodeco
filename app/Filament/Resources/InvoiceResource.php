@@ -3,43 +3,60 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
-use App\Filament\Resources\InvoiceResource\RelationManagers;
 use App\Models\Invoice;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationLabel = 'Invoices / Tagihan';
+    protected static ?string $navigationGroup = 'Keuangan';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('client_id')
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Select::make('client_id')
+                    ->label('Klien')
+                    ->relationship('client', 'name')
+                    ->searchable()
+                    ->required(),
+                    
                 Forms\Components\TextInput::make('invoice_number')
+                    ->label('Nomor Invoice')
                     ->required()
+                    ->unique(ignoreRecord: true)
                     ->maxLength(255),
+                    
                 Forms\Components\TextInput::make('amount')
+                    ->label('Total Tagihan (Rp)')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->prefix('Rp'),
+                    
                 Forms\Components\DatePicker::make('issue_date')
+                    ->label('Tanggal Terbit')
+                    ->default(now())
                     ->required(),
+                    
                 Forms\Components\DatePicker::make('due_date')
+                    ->label('Jatuh Tempo')
                     ->required(),
-                Forms\Components\TextInput::make('status')
-                    ->required()
-                    ->maxLength(255)
-                    ->default('Unpaid'),
+                    
+                Forms\Components\Select::make('status')
+                    ->label('Status')
+                    ->options([
+                        'Unpaid' => 'Belum Dibayar (Unpaid)',
+                        'Partial' => 'Dicicil / DP (Partial)',
+                        'Paid' => 'Lunas (Paid)',
+                    ])
+                    ->default('Unpaid')
+                    ->required(),
             ]);
     }
 
@@ -47,35 +64,87 @@ class InvoiceResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('client_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('client.name')
+                    ->label('Nama Klien')
+                    ->searchable()
                     ->sortable(),
+                    
                 Tables\Columns\TextColumn::make('invoice_number')
+                    ->label('No. Invoice')
                     ->searchable(),
+                    
                 Tables\Columns\TextColumn::make('amount')
+                    ->label('Total Tagihan')
                     ->numeric()
+                    ->prefix('Rp ')
                     ->sortable(),
+                    
                 Tables\Columns\TextColumn::make('issue_date')
-                    ->date()
+                    ->label('Tgl Terbit')
+                    ->date('d M Y')
                     ->sortable(),
+                    
                 Tables\Columns\TextColumn::make('due_date')
-                    ->date()
+                    ->label('Jatuh Tempo')
+                    ->date('d M Y')
                     ->sortable(),
+                    
                 Tables\Columns\TextColumn::make('status')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Unpaid' => 'danger',
+                        'Partial' => 'warning',
+                        'Paid' => 'success',
+                        default => 'secondary',
+                    }),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 //
             ])
             ->actions([
+                // TOMBOL PEMBAYARAN AJAIB
+                Tables\Actions\Action::make('catat_pembayaran')
+                    ->label('Catat Bayar / DP')
+                    ->icon('heroicon-o-banknotes')
+                    ->color('success')
+                    ->visible(fn (Invoice $record) => strtolower($record->status) !== 'paid') // Sembunyi jika sudah Lunas
+                    ->form([
+                        Forms\Components\TextInput::make('amount_paid')
+                            ->label('Nominal Masuk (Rp)')
+                            ->numeric()
+                            ->required()
+                            ->prefix('Rp'),
+                        Forms\Components\DatePicker::make('payment_date')
+                            ->label('Tanggal Pembayaran')
+                            ->default(now())
+                            ->required(),
+                        Forms\Components\TextInput::make('notes')
+                            ->label('Keterangan (Contoh: DP 50% atau Pelunasan)')
+                            ->required(),
+                    ])
+                    ->action(function (Invoice $record, array $data) {
+                        // 1. Catat ke brankas Transaksi otomatis
+                        \App\Models\Transaction::create([
+                            'type' => 'Income',
+                            'category' => 'Project', // Kategori default
+                            'amount' => $data['amount_paid'],
+                            'transaction_date' => $data['payment_date'],
+                            'invoice_id' => $record->id, 
+                        ]);
+
+                        // 2. Hitung total uang yang sudah masuk untuk invoice ini
+                        $totalDibayar = $record->transactions()->sum('amount');
+                        
+                        // 3. Update status otomatis
+                        if ($totalDibayar >= $record->amount) {
+                            $record->update(['status' => 'Paid']);
+                        } else {
+                            $record->update(['status' => 'Partial']);
+                        }
+                    })
+                    ->successNotificationTitle('Pembayaran & Transaksi Berhasil Dicatat!'),
+                    
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

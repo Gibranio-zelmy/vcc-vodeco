@@ -21,4 +21,10 @@ class Invoice extends Model
     {
         return $this->belongsTo(Client::class);
     }
+
+    public function transactions()
+    {
+        // Relasi invoice dengan transaksi
+        return $this->hasMany(Transaction::class);
+    }
 }
