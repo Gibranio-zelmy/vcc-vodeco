@@ -2,7 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Kunci pintu depan, paksa semua pengunjung langsung ke Gerbang Terminal (Login)
 Route::get('/', function () {
-    return redirect('/admin');
+    // Jika sudah login, cek jabatannya
+    if (auth()->check()) {
+        return auth()->user()->role === 'admin' ? redirect('/admin') : redirect('/input');
+    }
+    // Jika belum login, paksa arahkan ke halaman Login Kuli
+    return redirect('/input'); 
 });

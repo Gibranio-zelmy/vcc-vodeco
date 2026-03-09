@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use \App\Traits\RecordsActivity;
 
 class Client extends Model
 {
     protected $guarded = [];
+    use RecordsActivity;
 
     // Fungsi Gaib: Bekerja otomatis sesaat sebelum data disimpan ke database
     protected static function booted()

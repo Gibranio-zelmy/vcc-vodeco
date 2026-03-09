@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use \App\Traits\RecordsActivity;
 
 class Project extends Model
 {
+    use RecordsActivity;
     protected $guarded = []; // Membuka gerbang agar data bisa masuk otomatis
 
     // PIPA RELASI MUTLAK KE TABEL KLIEN (BARU)
