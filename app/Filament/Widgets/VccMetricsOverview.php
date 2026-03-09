@@ -11,7 +11,7 @@ class VccMetricsOverview extends BaseWidget
 {
     // Mempercepat refresh rate widget ala Bloomberg
     protected static ?string $pollingInterval = '15s'; 
-
+    protected static ?int $sort = 2;
     protected function getStats(): array
     {
         // 1. Sinkronisasi status baru: Proyek yang belum 'Completed'

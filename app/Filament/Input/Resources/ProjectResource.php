@@ -11,6 +11,10 @@ use Filament\Resources\Resource;
 class ProjectResource extends Resource
 {
     protected static ?string $model = Project::class;
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->role === 'operator';
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase'; // Ikon Tas Kerja
     protected static ?string $navigationLabel = 'Input Proyek Baru';

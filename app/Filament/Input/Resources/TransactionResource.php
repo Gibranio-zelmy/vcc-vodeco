@@ -11,6 +11,10 @@ use Filament\Resources\Resource;
 class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->role === 'operator';
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-minus-circle'; // Ikon minus (uang keluar)
     protected static ?string $navigationLabel = 'Input Pengeluaran'; // Pertegas nama loket

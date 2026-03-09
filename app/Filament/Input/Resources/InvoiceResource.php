@@ -13,6 +13,10 @@ use Filament\Tables\Table;
 class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->role === 'operator';
+    }
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationLabel = 'Meja Kasir (Invoice)';
     protected static ?string $pluralModelLabel = 'Meja Kasir (Invoice)';

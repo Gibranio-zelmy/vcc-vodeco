@@ -14,6 +14,10 @@ use Illuminate\Database\Eloquent\Builder;
 class AssetResource extends Resource
 {
     protected static ?string $model = Asset::class;
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->role === 'operator';
+    }
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt'; // Ikon diganti jadi globe agar relevan dengan web
     protected static ?string $navigationLabel = 'Meja Admin Billing';
     protected static ?string $navigationGroup = '1. FASE SALES & ADMIN';

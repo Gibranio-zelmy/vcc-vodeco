@@ -11,6 +11,10 @@ use Filament\Resources\Resource;
 class ClientResource extends Resource
 {
     protected static ?string $model = Client::class;
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->role === 'operator';
+    }
     protected static ?string $navigationIcon = 'heroicon-o-users';
     protected static ?string $navigationLabel = 'Input Klien Baru';
     protected static ?string $pluralModelLabel = 'Input Klien';

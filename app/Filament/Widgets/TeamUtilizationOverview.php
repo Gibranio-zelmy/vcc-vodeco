@@ -9,7 +9,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class TeamUtilizationOverview extends BaseWidget
 {
     protected static ?string $pollingInterval = '15s';
-    protected static ?int $sort = 3; // Menjaga urutan di bawah radar finansial
+    protected static ?int $sort = 2; // Menjaga urutan di bawah radar finansial
 
     protected function getStats(): array
     {

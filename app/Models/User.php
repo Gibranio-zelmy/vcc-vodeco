@@ -23,10 +23,16 @@ class User extends Authenticatable implements FilamentUser
 
         // 2. Pintu Loket Input (vodeco.com/input)
         if ($panel->getId() === 'input') {
-            // Admin boleh masuk untuk nge-tes, Operator wajib masuk ke sini
-            return in_array($this->role, ['admin', 'operator']); 
+            // Admin ditambahkan agar VIP Bos juga bisa nge-tes masuk ke /input
+            return in_array($this->role, ['admin', 'operator', 'hrd', 'karyawan']);
         }
 
         return false; // Jika ada pintu siluman lain, blokir mutlak
+    }
+
+    // RELASI MUTLAK KE PENGAJUAN CUTI (Koreksi kurung tutup nyasar)
+    public function leaveRequests() 
+    { 
+        return $this->hasMany(LeaveRequest::class); 
     }
 }

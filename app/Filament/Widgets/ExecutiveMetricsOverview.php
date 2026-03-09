@@ -11,12 +11,17 @@ use Carbon\Carbon;
 class ExecutiveMetricsOverview extends BaseWidget
 {
     protected static ?string $pollingInterval = '15s';
-    protected static ?int $sort = 4; // Berada di baris paling bawah
+    protected static ?int $sort = -1;
+
+    // MANTRA MUTLAK: Paksa widget ini menjadi 4 kolom agar sejajar dan rapi menampung Total Kas
+    protected function getColumns(): int
+    {
+        return 4;
+    }
 
     protected function getStats(): array
     {
-        // 1. Kalkulasi Total Kas Sepanjang Masa (Untuk hitung Runway)
-        // PROTEKSI MUTLAK: ?? 0 agar tidak error saat database baru di-reset
+        // 1. Kalkulasi Total Kas Sepanjang Masa (Untuk hitung Runway & Tampilan Tangki Utama)
         $totalIncome = Transaction::where('type', 'income')->sum('amount') ?? 0;
         $totalExpense = Transaction::where('type', 'expense')->sum('amount') ?? 0;
         $currentCash = $totalIncome - $totalExpense;
@@ -37,7 +42,7 @@ class ExecutiveMetricsOverview extends BaseWidget
 
         // 3. Eksekusi Rumus Runway (Berapa bulan perusahaan bisa hidup tanpa pemasukan baru)
         $runway = $monthExpense > 0 ? round($currentCash / $monthExpense, 1) : 0;
-        $runwayText = $monthExpense > 0 ? $runway . ' Bulan' : 'Aman (Burn Rate 0)';
+        $runwayText = $monthExpense > 0 ? $runway . ' Bulan' : 'Aman (>99 Bln)';
 
         // 4. Eksekusi Rumus Net Profit Margin (Persentase Keuntungan bersih)
         $monthProfit = $monthIncome - $monthExpense;
@@ -48,17 +53,22 @@ class ExecutiveMetricsOverview extends BaseWidget
         $revPerEmployee = $activeEmployees > 0 ? $monthIncome / $activeEmployees : 0;
 
         return [
+            // KARTU BARU: TOTAL KAS BRANKAS ALL-TIME (Tangki Bensin Utama)
+            Stat::make('Total Kas Brankas', 'Rp ' . number_format((float)$currentCash, 0, ',', '.'))
+                ->description('Total uang murni Vodeco (All-Time)')
+                ->color('success')
+                ->descriptionIcon('heroicon-m-banknotes'),
+
             Stat::make('Company Runway', $runwayText)
-                ->description('Batas hidup tanpa pemasukan baru')
-                ->color((float)$runway < 6 && $monthExpense > 0 ? 'danger' : 'success') // Merah jika di bawah 6 bulan
+                ->description('Batas napas vs pengeluaran bulan ini')
+                ->color((float)$runway < 6 && $monthExpense > 0 ? 'danger' : 'success') 
                 ->descriptionIcon('heroicon-m-clock'),
                 
             Stat::make('Net Profit Margin', $margin . '%')
-                ->description('Rasio profitabilitas riil bulan ini')
-                ->color((float)$margin >= 20 ? 'success' : 'warning') // Hijau jika profit > 20%
+                ->description('Rasio profit riil bulan ini')
+                ->color((float)$margin >= 20 ? 'success' : 'warning') 
                 ->descriptionIcon('heroicon-m-chart-pie'),
                 
-            // SUNTIKAN (float) agar format miliaran tetap lurus dan rapi
             Stat::make('Rev. per Employee', 'Rp ' . number_format((float)$revPerEmployee, 0, ',', '.'))
                 ->description('Produktivitas uang per anggota tim')
                 ->color('info')

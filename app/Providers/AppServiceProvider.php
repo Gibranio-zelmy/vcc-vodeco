@@ -3,15 +3,18 @@
 namespace App\Providers;
 use Filament\Tables\Table;
 use Illuminate\Support\ServiceProvider;
+use Filament\Http\Responses\Auth\Contracts\LoginResponse;
+use App\Http\Responses\LoginResponse as CerdasLoginResponse;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        // 3. TAMBAHKAN KODE INI DI DALAM SINI
+        $this->app->singleton(
+            LoginResponse::class,
+            CerdasLoginResponse::class
+        );
     }
 
     /**
