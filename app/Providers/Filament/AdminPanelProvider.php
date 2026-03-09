@@ -27,16 +27,30 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->colors([
-                'primary' => \Filament\Support\Colors\Color::Emerald, // Hijau Terminal
-                'gray' => \Filament\Support\Colors\Color::Zinc,
+            ->brandName('VCC TERMINAL') // Identitas Kokpit
+            ->userMenuItems([
+                'profile' => \Filament\Navigation\MenuItem::make()
+                    ->label('Profil CEO')
+                    ->url(fn (): string => '#') // Nanti kita buatkan halaman profil khusus jika Bos mau
+                    ->icon('heroicon-m-user-circle'),
+                'logout' => \Filament\Navigation\MenuItem::make()
+                    ->label('Log Out Terminal')
+                    ->icon('heroicon-m-arrow-right-on-rectangle')
+                    ->color('danger'),
             ])
-            ->font('JetBrains Mono') // Font angka presisi ala Terminal
-            ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark) // Paksa Dark Mode abadi
+            ->colors([
+                'primary' => \Filament\Support\Colors\Color::Emerald, // Hijau Terminal bawaan Bos
+                'success' => \Filament\Support\Colors\Color::Emerald, // Hijau untuk Profit/Lunas
+                'danger'  => \Filament\Support\Colors\Color::Rose,    // Merah untuk Piutang/Loss
+                'warning' => \Filament\Support\Colors\Color::Amber,   // Oranye untuk DP/Pending
+                'gray'    => \Filament\Support\Colors\Color::Zinc,    // Latar gelap solid
+            ])
+            ->font('JetBrains Mono') // Font presisi tinggi
+            ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark) // Dark Mode Abadi
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                \App\Filament\Pages\Dashboard::class,
+                \App\Filament\Pages\Dashboard::class, // Dashboard kustom Bos tetap aman
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

@@ -15,7 +15,8 @@ class InvoiceResource extends Resource
     protected static ?string $model = Invoice::class;
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationLabel = 'Invoices / Tagihan';
-    protected static ?string $navigationGroup = 'Keuangan';
+    protected static ?string $navigationGroup = 'CASHFLOW';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
@@ -33,11 +34,13 @@ class InvoiceResource extends Resource
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
                     
+                // PERBAIKAN FORM 1: Mengubah format error menjadi input angka murni
                 Forms\Components\TextInput::make('amount')
-                    ->label('Total Tagihan (Rp)')
-                    ->required()
+                    ->label('Total Tagihan')
+                    ->prefix('Rp')
                     ->numeric()
-                    ->prefix('Rp'),
+                    ->minValue(0)
+                    ->required(),
                     
                 Forms\Components\DatePicker::make('issue_date')
                     ->label('Tanggal Terbit')
@@ -75,8 +78,8 @@ class InvoiceResource extends Resource
                     
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Total Tagihan')
-                    ->numeric()
-                    ->prefix('Rp ')
+                    ->formatStateUsing(fn ($state) => 'Rp ' . number_format((float)$state, 0, ',', '.'))
+                    ->alignRight()
                     ->sortable(),
                     
                 Tables\Columns\TextColumn::make('issue_date')
@@ -110,15 +113,19 @@ class InvoiceResource extends Resource
                     ->color('success')
                     ->visible(fn (Invoice $record) => strtolower($record->status) !== 'paid') // Sembunyi jika sudah Lunas
                     ->form([
+                        // PERBAIKAN FORM 2: Form pop-up pembayaran juga harus angka murni
                         Forms\Components\TextInput::make('amount_paid')
-                            ->label('Nominal Masuk (Rp)')
+                            ->label('Nominal Masuk')
+                            ->prefix('Rp')
                             ->numeric()
-                            ->required()
-                            ->prefix('Rp'),
+                            ->minValue(0)
+                            ->required(),
+                            
                         Forms\Components\DatePicker::make('payment_date')
                             ->label('Tanggal Pembayaran')
                             ->default(now())
                             ->required(),
+                            
                         Forms\Components\TextInput::make('notes')
                             ->label('Keterangan (Contoh: DP 50% atau Pelunasan)')
                             ->required(),

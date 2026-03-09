@@ -16,8 +16,9 @@ class ExecutiveMetricsOverview extends BaseWidget
     protected function getStats(): array
     {
         // 1. Kalkulasi Total Kas Sepanjang Masa (Untuk hitung Runway)
-        $totalIncome = Transaction::where('type', 'income')->sum('amount');
-        $totalExpense = Transaction::where('type', 'expense')->sum('amount');
+        // PROTEKSI MUTLAK: ?? 0 agar tidak error saat database baru di-reset
+        $totalIncome = Transaction::where('type', 'income')->sum('amount') ?? 0;
+        $totalExpense = Transaction::where('type', 'expense')->sum('amount') ?? 0;
         $currentCash = $totalIncome - $totalExpense;
 
         // 2. Kalkulasi Data Bulan Ini
@@ -27,16 +28,16 @@ class ExecutiveMetricsOverview extends BaseWidget
         $monthIncome = Transaction::where('type', 'income')
             ->whereMonth('transaction_date', $currentMonth)
             ->whereYear('transaction_date', $currentYear)
-            ->sum('amount');
+            ->sum('amount') ?? 0;
 
         $monthExpense = Transaction::where('type', 'expense')
             ->whereMonth('transaction_date', $currentMonth)
             ->whereYear('transaction_date', $currentYear)
-            ->sum('amount');
+            ->sum('amount') ?? 0;
 
         // 3. Eksekusi Rumus Runway (Berapa bulan perusahaan bisa hidup tanpa pemasukan baru)
         $runway = $monthExpense > 0 ? round($currentCash / $monthExpense, 1) : 0;
-        $runwayText = $runway > 0 ? $runway . ' Bulan' : 'Aman (Burn Rate 0)';
+        $runwayText = $monthExpense > 0 ? $runway . ' Bulan' : 'Aman (Burn Rate 0)';
 
         // 4. Eksekusi Rumus Net Profit Margin (Persentase Keuntungan bersih)
         $monthProfit = $monthIncome - $monthExpense;
@@ -49,15 +50,16 @@ class ExecutiveMetricsOverview extends BaseWidget
         return [
             Stat::make('Company Runway', $runwayText)
                 ->description('Batas hidup tanpa pemasukan baru')
-                ->color($runway < 6 ? 'danger' : 'success') // Merah jika di bawah 6 bulan
+                ->color((float)$runway < 6 && $monthExpense > 0 ? 'danger' : 'success') // Merah jika di bawah 6 bulan
                 ->descriptionIcon('heroicon-m-clock'),
                 
             Stat::make('Net Profit Margin', $margin . '%')
                 ->description('Rasio profitabilitas riil bulan ini')
-                ->color($margin >= 20 ? 'success' : 'warning') // Hijau jika profit > 20%
+                ->color((float)$margin >= 20 ? 'success' : 'warning') // Hijau jika profit > 20%
                 ->descriptionIcon('heroicon-m-chart-pie'),
                 
-            Stat::make('Rev. per Employee', 'Rp ' . number_format($revPerEmployee, 0, ',', '.'))
+            // SUNTIKAN (float) agar format miliaran tetap lurus dan rapi
+            Stat::make('Rev. per Employee', 'Rp ' . number_format((float)$revPerEmployee, 0, ',', '.'))
                 ->description('Produktivitas uang per anggota tim')
                 ->color('info')
                 ->descriptionIcon('heroicon-m-user'),

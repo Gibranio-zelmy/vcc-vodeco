@@ -14,6 +14,7 @@ class Invoice extends Model
         'issue_date',
         'due_date',
         'status',
+        'paid_amount'
     ];
 
     // Relasi agar sistem tahu invoice ini milik client siapa

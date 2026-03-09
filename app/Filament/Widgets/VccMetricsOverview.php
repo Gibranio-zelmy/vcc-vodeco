@@ -14,19 +14,26 @@ class VccMetricsOverview extends BaseWidget
 
     protected function getStats(): array
     {
+        // 1. Sinkronisasi status baru: Proyek yang belum 'Completed'
+        $activeProjects = Project::whereIn('status', ['Queue', 'In Progress', 'Review'])->count();
+        
+        // 2. Menghitung nilai proyek yang masih berstatus antrean awal (Queue)
+        $pipelineValue = Project::where('status', 'Queue')->sum('project_value') ?? 0;
+
         return [
-            Stat::make('Active Projects', Project::where('status', 'Ongoing')->count())
+            Stat::make('Active Projects', $activeProjects . ' Proyek')
                 ->description('Proyek Vodeco yang sedang berjalan')
                 ->descriptionIcon('heroicon-m-briefcase')
                 ->color('success'),
                 
-            Stat::make('Active Operators', Employee::where('status', 'Active')->count())
+            Stat::make('Active Operators', Employee::where('status', 'Active')->count() . ' Orang')
                 ->description('Tim Vodeco yang siap tempur')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('info'),
                 
-            Stat::make('Pipeline Value (IDR)', Project::where('status', 'Pipeline')->sum('project_value'))
-                ->description('Potensi uang yang masih menggantung')
+            // PROTEKSI MUTLAK: Format angka kebal error
+            Stat::make('Pipeline Value (IDR)', 'Rp ' . number_format((float)$pipelineValue, 0, ',', '.'))
+                ->description('Potensi uang di antrean (Queue)')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('warning'),
         ];

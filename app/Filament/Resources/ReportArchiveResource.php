@@ -21,7 +21,8 @@ class ReportArchiveResource extends Resource
     protected static ?string $model = ReportArchive::class;
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
     protected static ?string $navigationLabel = 'Arsip Laporan';
-    protected static ?string $navigationGroup = 'Evaluasi';
+    protected static ?string $navigationGroup = 'ANALYTICS';
+    protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
     {

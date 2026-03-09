@@ -17,11 +17,14 @@ class AdvancedMetricsOverview extends BaseWidget
     protected function getStats(): array
     {
         // 1. Radar AR Aging (Piutang Menggantung)
-        // Menjumlahkan semua invoice yang belum dibayar atau lewat jatuh tempo
-        $arAging = Invoice::whereIn('status', ['Unpaid', 'Overdue'])->sum('amount');
+        // UPDATE MUTLAK: Hitung Unpaid, Partial, Overdue, dan kurangi dengan uang DP yang sudah masuk
+        $arAging = Invoice::whereIn('status', ['Unpaid', 'Partial', 'Overdue'])
+            ->get()
+            ->sum(function ($invoice) {
+                return $invoice->amount - $invoice->paid_amount;
+            });
 
         // 2. Radar CAC (Customer Acquisition Cost) Bulan Ini
-        // Sistem otomatis mencari pengeluaran yang kategorinya mengandung kata 'Iklan', 'Ads', atau 'Marketing'
         $marketingSpend = Transaction::where('type', 'expense')
             ->where(function($q) {
                 $q->where('category', 'ILIKE', '%Iklan%')
@@ -30,7 +33,7 @@ class AdvancedMetricsOverview extends BaseWidget
             })
             ->whereMonth('transaction_date', Carbon::now()->month)
             ->whereYear('transaction_date', Carbon::now()->year)
-            ->sum('amount');
+            ->sum('amount') ?? 0;
 
         $newClientsThisMonth = Client::whereMonth('join_date', Carbon::now()->month)
             ->whereYear('join_date', Carbon::now()->year)
@@ -39,23 +42,23 @@ class AdvancedMetricsOverview extends BaseWidget
         $cac = $newClientsThisMonth > 0 ? $marketingSpend / $newClientsThisMonth : 0;
 
         // 3. Radar LTV (Lifetime Value)
-        // Rata-rata total uang yang dibawa oleh satu klien selama mereka bersama Vodeco
-        $totalIncome = Transaction::where('type', 'income')->sum('amount');
+        $totalIncome = Transaction::where('type', 'income')->sum('amount') ?? 0;
         $totalClients = Client::count();
         $ltv = $totalClients > 0 ? $totalIncome / $totalClients : 0;
 
         return [
-            Stat::make('AR Aging (Piutang)', 'Rp ' . number_format($arAging, 0, ',', '.'))
+            // Tambahan (float) untuk memaksa data menjadi angka desimal murni sebelum diformat
+            Stat::make('AR Aging (Piutang)', 'Rp ' . number_format((float)$arAging, 0, ',', '.'))
                 ->description('Uang Vodeco yang masih di tangan klien')
                 ->color($arAging > 0 ? 'danger' : 'success')
                 ->descriptionIcon('heroicon-m-exclamation-circle'),
 
-            Stat::make('CAC (Biaya Akuisisi)', 'Rp ' . number_format($cac, 0, ',', '.'))
+            Stat::make('CAC (Biaya Akuisisi)', 'Rp ' . number_format((float)$cac, 0, ',', '.'))
                 ->description('Modal marketing per 1 klien baru')
                 ->color('warning')
                 ->descriptionIcon('heroicon-m-megaphone'),
 
-            Stat::make('Client LTV', 'Rp ' . number_format($ltv, 0, ',', '.'))
+            Stat::make('Client LTV', 'Rp ' . number_format((float)$ltv, 0, ',', '.'))
                 ->description('Rata-rata valuasi 1 klien')
                 ->color('success')
                 ->descriptionIcon('heroicon-m-star'),

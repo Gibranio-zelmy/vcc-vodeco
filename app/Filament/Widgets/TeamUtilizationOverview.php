@@ -16,9 +16,14 @@ class TeamUtilizationOverview extends BaseWidget
         // Menghitung total beban kerja setiap tim aktif dari semua proyek mereka
         $employees = Employee::where('status', 'Active')
             ->withSum('projects as total_allocation', 'employee_project.allocation_percentage')
-            ->get();
+            ->get()
+            ->map(function ($employee) {
+                // PROTEKSI MUTLAK: Karyawan tanpa proyek (null) dipaksa menjadi angka 0 murni
+                $employee->total_allocation = (float) ($employee->total_allocation ?? 0);
+                return $employee;
+            });
 
-        // Mengelompokkan berdasarkan suhu mesin (persentase)
+        // Mengelompokkan berdasarkan suhu mesin (persentase mutlak)
         $overloaded = $employees->where('total_allocation', '>', 100)->count();
         $safe = $employees->whereBetween('total_allocation', [50, 100])->count();
         $idle = $employees->where('total_allocation', '<', 50)->count(); 

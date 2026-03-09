@@ -18,6 +18,8 @@ class TransactionResource extends Resource
     protected static ?string $model = Transaction::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'CASHFLOW';
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
@@ -27,16 +29,40 @@ class TransactionResource extends Resource
                     ->label('Tanggal Transaksi')
                     ->default(now())
                     ->required(),
-                Forms\Components\TextInput::make('type')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('category')
-                    ->required()
-                    ->maxLength(255),
+                
+                // PERBAIKAN: Menggunakan Select agar jadi Dropdown, bukan TextInput
+                Forms\Components\Select::make('type')
+                    ->label('Tipe (Arus)')
+                    ->options([
+                        'income' => 'Pemasukan (Income)',
+                        'expense' => 'Pengeluaran (Expense)',
+                    ])
+                    ->required(),
+                    
+                // PERBAIKAN: Menggunakan Select untuk Kategori agar seragam dan anti-typo
+                Forms\Components\Select::make('category')
+                    ->label('Kategori')
+                    ->options([
+                        'project' => 'Project Klien / Tagihan',
+                        'operational' => 'Operasional Kantor (Listrik/Air/Internet)',
+                        'salary' => 'Gaji Tim / Fee Freelance',
+                        'marketing' => 'Marketing / Meta Ads',
+                        'asset' => 'Pembelian Aset / Server / Domain',
+                        'other' => 'Lain-lain',
+                    ])
+                    ->searchable()
+                    ->required(),
+                
+                // PERBAIKAN FORM: Hanya menerima angka murni, mencegah error database
                 Forms\Components\TextInput::make('amount')
-                    ->required()
-                    ->numeric(),
+                    ->label('Nominal')
+                    ->prefix('Rp')
+                    ->numeric()
+                    ->minValue(0)
+                    ->required(),
+                    
                 Forms\Components\TextInput::make('description')
+                    ->label('Keterangan')
                     ->maxLength(255),
             ]);
     }
@@ -62,13 +88,15 @@ class TransactionResource extends Resource
                 
             \Filament\Tables\Columns\TextColumn::make('category')
                 ->label('Kategori')
-                ->searchable(),
+                ->searchable()
+                ->formatStateUsing(fn (string $state): string => strtoupper($state)),
                 
+            // PERBAIKAN TABEL: Mengganti money('IDR') menjadi format titik bersih tanpa desimal
             \Filament\Tables\Columns\TextColumn::make('amount')
                 ->label('Nominal (IDR)')
-                ->money('IDR', locale: 'id') // Format otomatis Rupiah
-                ->sortable()
-                ->alignment(\Filament\Support\Enums\Alignment::End), // Rata kanan presisi tinggi
+                ->formatStateUsing(fn ($state) => 'Rp ' . number_format((float)$state, 0, ',', '.'))
+                ->alignRight()
+                ->sortable(),
                 
             \Filament\Tables\Columns\TextColumn::make('description')
                 ->label('Keterangan')

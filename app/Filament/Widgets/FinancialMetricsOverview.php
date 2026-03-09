@@ -18,28 +18,36 @@ class FinancialMetricsOverview extends BaseWidget
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
 
+        // PROTEKSI MUTLAK: Ditambah ?? 0 agar sistem selalu membaca angka murni
         $income = Transaction::where('type', 'income')
             ->whereMonth('transaction_date', $currentMonth)
             ->whereYear('transaction_date', $currentYear)
-            ->sum('amount');
+            ->sum('amount') ?? 0;
 
         $expense = Transaction::where('type', 'expense')
             ->whereMonth('transaction_date', $currentMonth)
             ->whereYear('transaction_date', $currentYear)
-            ->sum('amount');
+            ->sum('amount') ?? 0;
 
         $netCashflow = $income - $expense;
 
         return [
-            Stat::make('Pemasukan Bulan Ini', 'Rp ' . number_format($income, 0, ',', '.'))
+            // SUNTIKAN (float) agar angka miliaran formatnya sejajar rapi dan aman
+            Stat::make('Pemasukan Bulan Ini', 'Rp ' . number_format((float)$income, 0, ',', '.'))
                 ->color('success')
-                ->chart([7, 2, 10, 3, 15, 4, 17]), 
+                ->description('Total uang masuk bulan ini')
+                ->descriptionIcon('heroicon-m-arrow-trending-up')
+                ->chart([7, 2, 10, 3, 15, 4, 17]), // Sparkline visual
                 
-            Stat::make('Pengeluaran (Burn Rate)', 'Rp ' . number_format($expense, 0, ',', '.'))
+            Stat::make('Pengeluaran (Burn Rate)', 'Rp ' . number_format((float)$expense, 0, ',', '.'))
                 ->color('danger')
+                ->description('Total uang keluar bulan ini')
+                ->descriptionIcon('heroicon-m-fire')
                 ->chart([3, 12, 4, 15, 2, 10, 5]),
                 
-            Stat::make('Net Cashflow', 'Rp ' . number_format($netCashflow, 0, ',', '.'))
+            Stat::make('Net Cashflow', 'Rp ' . number_format((float)$netCashflow, 0, ',', '.'))
+                ->description('Selisih Pemasukan & Pengeluaran')
+                ->descriptionIcon($netCashflow >= 0 ? 'heroicon-m-check-circle' : 'heroicon-m-x-circle')
                 ->color($netCashflow >= 0 ? 'success' : 'danger'),
         ];
     }
