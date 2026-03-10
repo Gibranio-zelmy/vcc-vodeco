@@ -11,10 +11,12 @@ use Filament\Resources\Resource;
 class ClientResource extends Resource
 {
     protected static ?string $model = Client::class;
+
     public static function canViewAny(): bool
     {
         return auth()->user()->role === 'operator';
     }
+
     protected static ?string $navigationIcon = 'heroicon-o-users';
     protected static ?string $navigationLabel = 'Input Klien Baru';
     protected static ?string $pluralModelLabel = 'Input Klien';
@@ -27,6 +29,7 @@ class ClientResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make('Informasi Dasar')
+                    ->description('Pastikan data klien utama sudah benar sebelum dikirim ke radar VIP.')
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label('Nama Lengkap')
@@ -34,6 +37,7 @@ class ClientResource extends Resource
                         Forms\Components\TextInput::make('company_name')
                             ->label('Nama Perusahaan'),
                         Forms\Components\DatePicker::make('join_date')
+                            ->label('Tanggal Bergabung')
                             ->default(now())
                             ->required(),
                     ])->columns(2),
@@ -52,12 +56,12 @@ class ClientResource extends Resource
             ]);
     }
 
-    // FUNGSI TABLE DIHAPUS MUTLAK
+    // FUNGSI TABLE DIHAPUS MUTLAK - Hanya untuk Input Data
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\CreateClient::route('/'), // Terkunci di form Create
+            'index' => Pages\CreateClient::route('/'), // Fokus terkunci ke Form Create
         ];
     }
 }

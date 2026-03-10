@@ -24,7 +24,8 @@ class InputPanelProvider extends PanelProvider
     {
         return $panel
             ->id('input')
-            ->path('input') // Alamat masuk kuli: vodeco.com/input
+            ->path('input')
+            ->databaseNotifications() 
             ->login()
             ->brandName('VCC DATA ENTRY') // Nama loket pembeda
             ->colors([

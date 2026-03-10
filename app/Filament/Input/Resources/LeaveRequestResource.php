@@ -150,7 +150,6 @@ class LeaveRequestResource extends Resource
                 //
             ])
             ->actions([
-                // TOMBOL VERIFIKASI HRD (Hanya muncul untuk HRD jika status masih pending_hrd)
                 Tables\Actions\Action::make('verify_hrd')
                     ->label('Verifikasi HRD')
                     ->icon('heroicon-o-check-circle')
@@ -158,7 +157,37 @@ class LeaveRequestResource extends Resource
                     ->visible(fn ($record) => auth()->user()->role === 'hrd' && $record->status === 'pending_hrd')
                     ->requiresConfirmation()
                     ->action(function ($record) {
+                        // 1. Update status cuti jadi pending_owner
                         $record->update(['status' => 'pending_owner']);
+
+                        // 2. TEMBAKAN INJEKSI MUTLAK KE VIP BOS
+                        $admins = \App\Models\User::where('role', 'admin')->get();
+                        
+                        foreach ($admins as $bos) {
+                            \Illuminate\Support\Facades\DB::table('notifications')->insert([
+                                'id' => (string) \Illuminate\Support\Str::uuid(),
+                                'type' => 'Filament\Notifications\DatabaseNotification',
+                                'notifiable_type' => 'App\Models\User',
+                                'notifiable_id' => $bos->id,
+                                'data' => json_encode([
+                                    'format' => 'filament',
+                                    'title' => '⏳ Cuti Menunggu ACC Bos!',
+                                    'body' => 'HRD telah memverifikasi cuti: ' . $record->user->name . '. Menunggu eksekusi Anda.',
+                                    'color' => 'warning',
+                                    'icon' => 'heroicon-o-shield-check',
+                                ]),
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+
+                        // 3. Pop-up untuk layar HRD (Dibuat Persistent / Menempel Terus)
+                        \Filament\Notifications\Notification::make()
+                            ->title('Berhasil Diteruskan!')
+                            ->body('Data cuti telah dikirim ke Lonceng VIP Bos.')
+                            ->success()
+                            ->persistent() // <--- KUNCI MUTLAK
+                            ->send();
                     }),
                     
                 Tables\Actions\ViewAction::make(),

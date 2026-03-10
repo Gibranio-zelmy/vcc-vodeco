@@ -151,7 +151,31 @@ class InvoiceResource extends Resource
                             'status' => $status_baru
                         ]);
 
-                        // 3. Notifikasi Cerdas
+                        // ==========================================
+                        // 3. SUNTIKAN LONCENG BYPASS: UANG MASUK!
+                        // ==========================================
+                        $rupiah_masuk = 'Rp ' . number_format($nominal, 0, ',', '.');
+                        $admins = \App\Models\User::whereIn('role', ['admin', 'Admin'])->get();
+
+                        foreach ($admins as $bos) {
+                            \Illuminate\Support\Facades\DB::table('notifications')->insert([
+                                'id' => (string) \Illuminate\Support\Str::uuid(),
+                                'type' => 'Filament\Notifications\DatabaseNotification',
+                                'notifiable_type' => 'App\Models\User',
+                                'notifiable_id' => $bos->id,
+                                'data' => json_encode([
+                                    'format' => 'filament',
+                                    'title' => '💰 UANG MASUK: ' . $rupiah_masuk,
+                                    'body' => ($status_baru === 'Paid' ? 'LUNAS MUTLAK! ' : 'DP MASUK! ') . 'Pembayaran untuk Invoice ' . $record->invoice_number . ' telah diterima dan masuk ke Brankas VIP.',
+                                    'color' => 'success',
+                                    'icon' => 'heroicon-o-banknotes',
+                                ]),
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+
+                        // 4. Notifikasi Cerdas untuk Kuli
                         \Filament\Notifications\Notification::make()
                             ->title($status_baru === 'Paid' ? 'LUNAS MUTLAK!' : 'DP TERCATAT!')
                             ->body($status_baru === 'Paid' ? 'Tagihan selesai. Income terlempar ke VIP.' : 'Sisa tagihan telah di-update otomatis.')

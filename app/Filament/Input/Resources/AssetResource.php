@@ -14,11 +14,13 @@ use Illuminate\Database\Eloquent\Builder;
 class AssetResource extends Resource
 {
     protected static ?string $model = Asset::class;
+
     public static function canViewAny(): bool
     {
         return auth()->user()->role === 'operator';
     }
-    protected static ?string $navigationIcon = 'heroicon-o-globe-alt'; // Ikon diganti jadi globe agar relevan dengan web
+
+    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
     protected static ?string $navigationLabel = 'Meja Admin Billing';
     protected static ?string $navigationGroup = '1. FASE SALES & ADMIN';
     protected static ?int $navigationSort = 3;
@@ -27,10 +29,10 @@ class AssetResource extends Resource
 
     public static function form(Form $form): Form
     {
-        // (Isi Form TETAP SAMA seperti sebelumnya, agar kuli tetap bisa input aset baru semua kategori)
         return $form
             ->schema([
                 Forms\Components\Section::make('Klasifikasi Layanan Vodeco')
+                    ->description('Input data layanan/aset klien untuk dimonitor oleh Radar VIP.')
                     ->schema([
                         Forms\Components\Select::make('client_id')
                             ->relationship('client', 'name')
@@ -40,6 +42,7 @@ class AssetResource extends Resource
                             ->label('Nama Aset/Layanan')
                             ->required(),
                         Forms\Components\Select::make('category')
+                            ->label('Kategori Layanan')
                             ->options([
                                 'SEO' => 'SEO Specialist',
                                 'Design' => 'Creative Design (Logo/Compro)',
@@ -74,7 +77,8 @@ class AssetResource extends Resource
 
                 Forms\Components\TextInput::make('credentials_link')
                     ->label('Link Akses/Asset')
-                    ->url(),
+                    ->url()
+                    ->helperText('Akses ini hanya akan terlihat oleh akun VIP.'),
             ]);
     }
 
@@ -89,26 +93,22 @@ class AssetResource extends Resource
                 Tables\Columns\TextColumn::make('client.name')->label('Klien')->searchable(),
                 Tables\Columns\TextColumn::make('name')->label('Domain / Hosting')->searchable(),
                 
-                // Indikator Warna Otomatis Jika Hampir Mati (30 Hari)
                 Tables\Columns\TextColumn::make('end_date')
                     ->label('Jatuh Tempo')
-                    ->date()
+                    ->date('d M Y')
                     ->color(fn ($record) => $record->end_date <= now()->addDays(30) ? 'danger' : 'success')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('status')->badge(),
-                
-                // PERHATIKAN: Kolom Value (Rp) dan Credentials Link (Password) DIHAPUS MUTLAK dari layar kuli.
             ])
             ->filters([
-                // Filter yang sama dipasang di sini, tapi karena query awal sudah dikunci 'Web', aman.
                 Tables\Filters\Filter::make('expiring_soon')
                     ->label('Harus Ditagih Bulan Ini')
                     ->toggle()
                     ->query(fn (Builder $query): Builder => $query->where('end_date', '<=', now()->addDays(30))->where('status', 'active')),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Update Tgl'), // Hanya untuk update jika klien sudah bayar
+                Tables\Actions\EditAction::make()->label('Update Tgl'),
             ]);
     }
 

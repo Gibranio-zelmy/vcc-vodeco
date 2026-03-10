@@ -6,10 +6,12 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Traits\RecordsActivity; 
 
 class User extends Authenticatable implements FilamentUser
 {
     use Notifiable;
+    use RecordsActivity;
 
     protected $guarded = [];
 
