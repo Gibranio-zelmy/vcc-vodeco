@@ -36,7 +36,78 @@ class LeaveRequestResource extends Resource
                     ->label('Tanggal Selesai')
                     ->required()
                     ->native(false)
-                    ->afterOrEqual('start_date'),
+                    ->afterOrEqual('start_date')
+                    // MESIN HAKIM MUTLAK: SOP VODECO + RADAR BENTROK
+                    ->rule(function (\Filament\Forms\Get $get, ?\Illuminate\Database\Eloquent\Model $record) {
+                        return function (string $attribute, $value, \Closure $fail) use ($get, $record) {
+                            $startDate = $get('start_date');
+                            $endDate = $value;
+                            $user = auth()->user();
+
+                            if (!$startDate || !$endDate) return;
+
+                            $start = \Carbon\Carbon::parse($startDate);
+                            $end = \Carbon\Carbon::parse($endDate);
+
+                            // ==========================================
+                            // 1. SOP MUTLAK: MAKSIMAL 1 HARI (TIDAK BISA DIRAPEL)
+                            // ==========================================
+                            if ($start->diffInDays($end) > 0) {
+                                $fail('SOP Vodeco: Cuti tidak bisa dirapel. Anda hanya boleh mengambil 1 hari (Tanggal Mulai dan Selesai harus sama).');
+                                return;
+                            }
+
+                            // ==========================================
+                            // 2. SOP MUTLAK: JATAH 1 HARI PER BULAN
+                            // ==========================================
+                            $queryJatahBulanIni = \App\Models\LeaveRequest::where('user_id', $user->id)
+                                ->whereMonth('start_date', $start->month)
+                                ->whereYear('start_date', $start->year)
+                                ->whereIn('status', ['pending_hrd', 'pending_owner', 'approved']);
+                            
+                            // Jika sedang mode Edit, abaikan data cuti yang sedang diedit ini
+                            if ($record) {
+                                $queryJatahBulanIni->where('id', '!=', $record->id);
+                            }
+
+                            if ($queryJatahBulanIni->exists()) {
+                                $fail('SOP Vodeco: Jatah cuti untuk bulan ' . $start->translatedFormat('F Y') . ' sudah Anda gunakan. Jatah mutlak hanya 1 hari per bulan.');
+                                return;
+                            }
+
+                            // ==========================================
+                            // 3. RADAR ANTI-BENTROK JABATAN
+                            // ==========================================
+                            $employee = $user->employee;
+                            if ($employee) {
+                                $jabatan = $employee->role;
+                                
+                                $queryBentrok = \App\Models\LeaveRequest::whereHas('user.employee', function($q) use ($jabatan) {
+                                        $q->where('role', $jabatan);
+                                    })
+                                    ->where('user_id', '!=', $user->id)
+                                    ->whereIn('status', ['pending_hrd', 'pending_owner', 'approved'])
+                                    ->where(function ($query) use ($startDate, $endDate) {
+                                        // Rumus irisan tanggal
+                                        $query->whereBetween('start_date', [$startDate, $endDate])
+                                              ->orWhereBetween('end_date', [$startDate, $endDate])
+                                              ->orWhere(function ($q) use ($startDate, $endDate) {
+                                                  $q->where('start_date', '<=', $startDate)
+                                                    ->where('end_date', '>=', $endDate);
+                                              });
+                                    });
+
+                                // Jika sedang mode Edit, abaikan ID sendiri dari pengecekan
+                                if ($record) {
+                                    $queryBentrok->where('id', '!=', $record->id);
+                                }
+
+                                if ($queryBentrok->exists()) {
+                                    $fail("Sistem Menolak: Ada rekan dengan posisi yang sama [{$jabatan}] sedang libur di tanggal tersebut. Posisi tidak boleh kosong!");
+                                }
+                            }
+                        };
+                    }),
 
                 Forms\Components\Textarea::make('reason')
                     ->label('Alasan Cuti')
@@ -53,7 +124,7 @@ class LeaveRequestResource extends Resource
                     ->label('Nama Karyawan')
                     ->searchable()
                     // Sembunyikan kolom nama jika yang login adalah kuli biasa (karena isinya pasti nama dia sendiri)
-                    ->hidden(fn () => auth()->user()->role === 'karyawan'),
+                    ->hidden(fn () => auth()->user()->role === 'karyawan' || auth()->user()->role === 'operator'),
 
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Mulai')

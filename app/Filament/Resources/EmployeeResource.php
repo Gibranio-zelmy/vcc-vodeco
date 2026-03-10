@@ -3,28 +3,40 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EmployeeResource\Pages;
-use App\Filament\Resources\EmployeeResource\RelationManagers;
 use App\Models\Employee;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class EmployeeResource extends Resource
 {
     protected static ?string $model = Employee::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
     protected static ?string $navigationGroup = 'OPERATIONS';
     protected static ?int $navigationSort = 4;
+    protected static ?string $navigationLabel = 'Data Karyawan';
+
+    // GEMBOK MUTLAK VIP
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->role === 'admin';
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                // SUNTIKAN BARU: Tautan ke Akun Login
+                Forms\Components\Select::make('user_id')
+                    ->label('Akun Login (Sistem)')
+                    ->relationship('user', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->unique(ignoreRecord: true)
+                    ->helperText('Wajib diisi agar karyawan bisa login ke VCC.'),
+
                 Forms\Components\TextInput::make('name')
                     ->label('Nama Karyawan')
                     ->required()
@@ -54,6 +66,8 @@ class EmployeeResource extends Resource
                     ->label('Gaji Pokok')
                     ->prefix('Rp')
                     ->numeric()
+                    ->mask(\Filament\Support\RawJs::make('$money($input, \',\', \'.\', 0)'))
+                    ->stripCharacters('.')
                     ->minValue(0)
                     ->required(),
                     
@@ -73,12 +87,11 @@ class EmployeeResource extends Resource
                     ->default('Active')
                     ->required(),
                     
-                // PERBAIKAN FORM: Form URL untuk Google Drive (CV, Biodata, Porto)
                 Forms\Components\TextInput::make('document_link')
                     ->label('Link Berkas (G-Drive / CV / Porto)')
-                    ->url() // Validasi mutlak: Sistem menolak jika tidak diawali http:// atau https://
+                    ->url()
                     ->placeholder('https://drive.google.com/...')
-                    ->columnSpanFull(), // Dibuat memanjang penuh dari kiri ke kanan agar link panjang tidak terpotong
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -93,6 +106,12 @@ class EmployeeResource extends Resource
                 Tables\Columns\TextColumn::make('role')
                     ->label('Jabatan')
                     ->searchable(),
+
+                // SUNTIKAN BARU: Indikator Akun Sistem
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Akun Sistem')
+                    ->badge()
+                    ->color('info'),
                     
                 Tables\Columns\TextColumn::make('base_salary')
                     ->label('Gaji Pokok')
@@ -100,53 +119,38 @@ class EmployeeResource extends Resource
                     ->alignRight()
                     ->sortable(),
 
-                // 1. LINK DRIVE DIBUAT RAPI (Hanya tulisan "Buka Arsip")
                 Tables\Columns\TextColumn::make('document_link')
                     ->label('Arsip')
                     ->icon('heroicon-o-folder-open')
                     ->color('info')
-                    ->formatStateUsing(fn () => 'Buka Arsip') // Menyembunyikan URL panjang
+                    ->formatStateUsing(fn () => 'Buka Arsip')
                     ->url(fn ($record) => $record->document_link)
                     ->openUrlInNewTab(),
                     
-                // 2. TANGGAL GABUNG DIHILANGKAN DARI LAYAR UTAMA (Bisa dilihat jika butuh saja)
                 Tables\Columns\TextColumn::make('join_date')
                     ->label('Bergabung')
                     ->date('d M Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true), 
                     
-                // 3. RADAR SISA KONTRAK (Indikator Keputusan CEO)
                 Tables\Columns\TextColumn::make('contract_end_date')
                     ->label('Status Kontrak')
                     ->formatStateUsing(function ($state) {
                         if (!$state) return 'Permanen';
-                        
-                        // Kunci waktu mutlak di jam 00:00 agar tidak ada pecahan desimal
                         $end = \Carbon\Carbon::parse($state)->startOfDay();
                         $today = now()->startOfDay();
-                        
-                        // Jika tanggal sudah lewat dari hari ini
-                        if ($end->isBefore($today)) {
-                            return 'Expired / Habis';
-                        }
-                        
-                        // Hitung selisih hari sebagai angka bulat murni
+                        if ($end->isBefore($today)) return 'Expired / Habis';
                         $diff = (int) $today->diffInDays($end);
                         return $diff . ' Hari Lagi';
                     })
                     ->badge()
                     ->color(function ($state) {
                         if (!$state) return 'success';
-                        
                         $end = \Carbon\Carbon::parse($state)->startOfDay();
                         $today = now()->startOfDay();
-                        
                         if ($end->isBefore($today)) return 'danger';
-                        
                         $diff = (int) $today->diffInDays($end);
                         if ($diff <= 30) return 'warning';
-                        
                         return 'success';
                     })
                     ->sortable(),
@@ -163,9 +167,6 @@ class EmployeeResource extends Resource
                     ->searchable(),
             ])
             ->defaultSort('created_at', 'desc')
-            ->filters([
-                //
-            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -174,13 +175,6 @@ class EmployeeResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

@@ -13,21 +13,34 @@ class User extends Authenticatable implements FilamentUser
 
     protected $guarded = [];
 
-    // ALGORITMA PENJAGA PINTU DUA GEDUNG
-    public function canAccessPanel(Panel $panel): bool
+    public function canAccessPanel(\Filament\Panel $panel): bool
     {
-        // 1. Pintu Brankas VIP (vodeco.com/admin)
+        // 1. Pintu Brankas VIP (Hanya Bos)
         if ($panel->getId() === 'admin') {
-            return $this->role === 'admin'; // HANYA Bos dan C-Level yang bisa tembus
+            return $this->role === 'admin';
         }
 
-        // 2. Pintu Loket Input (vodeco.com/input)
+        // 2. Pintu Loket Input
         if ($panel->getId() === 'input') {
-            // Admin ditambahkan agar VIP Bos juga bisa nge-tes masuk ke /input
-            return in_array($this->role, ['admin', 'operator', 'hrd', 'karyawan']);
+            // Bos (admin) bebas masuk ke mana saja untuk sidak
+            if ($this->role === 'admin') {
+                return true;
+            }
+
+            // GEMBOK MUTLAK: Cek apakah akun ini terdaftar di HRD & statusnya 'Active'
+            $isOfficialEmployee = $this->employee()->where('status', 'Active')->exists();
+            
+            if (!$isOfficialEmployee) {
+                return false; // Tendang keluar! (Akses Ditolak)
+            }
+
+            return in_array($this->role, ['operator', 'hrd', 'karyawan']);
         }
 
-        return false; // Jika ada pintu siluman lain, blokir mutlak
+        return false;
+    }
+    public function employee() {
+        return $this->hasOne(Employee::class);
     }
 
     // RELASI MUTLAK KE PENGAJUAN CUTI (Koreksi kurung tutup nyasar)

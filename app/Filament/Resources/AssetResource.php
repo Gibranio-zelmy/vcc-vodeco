@@ -56,6 +56,9 @@ class AssetResource extends Resource
                             ->label('Value (IDR)')
                             ->prefix('Rp')
                             ->numeric()
+                            ->mask(\Filament\Support\RawJs::make('$money($input, \',\', \'.\', 0)'))
+                            ->stripCharacters('.')
+                            ->required()
                             ->minValue(0),
                             
                         Forms\Components\Select::make('status')

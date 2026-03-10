@@ -58,6 +58,8 @@ class TransactionResource extends Resource
                     ->label('Nominal')
                     ->prefix('Rp')
                     ->numeric()
+                    ->mask(\Filament\Support\RawJs::make('$money($input, \',\', \'.\', 0)'))
+                    ->stripCharacters('.')
                     ->minValue(0)
                     ->required(),
                     

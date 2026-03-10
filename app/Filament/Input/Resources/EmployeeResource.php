@@ -17,16 +17,24 @@ class EmployeeResource extends Resource
     protected static ?string $navigationGroup = 'HRD & MANPOWER';
     protected static ?string $navigationLabel = 'Data Karyawan';
 
-    // GEMBOK MUTLAK: HANYA HRD YANG BISA MELIHAT MENU INI
+    // GEMBOK MUTLAK: HRD boleh buka, Bos kalau iseng ke portal ini juga tetap bisa buka
     public static function canViewAny(): bool
     {
-        return auth()->user()->role === 'hrd';
+        return in_array(auth()->user()->role, ['hrd', 'admin']);
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('user_id')
+                    ->label('Akun Login (Sistem)')
+                    ->relationship('user', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->unique(ignoreRecord: true)
+                    ->helperText('Wajib diisi agar karyawan bisa login ke VCC.'),
+                    
                 Forms\Components\TextInput::make('name')
                     ->label('Nama Karyawan')
                     ->required(),
@@ -87,22 +95,37 @@ class EmployeeResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nama Karyawan')
+                    ->label('Nama')
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('role')
-                    ->label('Posisi / Jabatan')
+                    ->label('Jabatan')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('base_salary')
-                    ->label('Gaji Pokok')
-                    ->money('IDR', locale: 'id') // Format Rupiah Otomatis
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Akun Sistem')
+                    ->badge()
+                    ->color('info'),
 
                 Tables\Columns\TextColumn::make('contract_end_date')
-                    ->label('Akhir Kontrak')
-                    ->date('d M Y')
+                    ->label('Status Kontrak')
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) return 'Permanen';
+                        $end = \Carbon\Carbon::parse($state)->startOfDay();
+                        $today = now()->startOfDay();
+                        if ($end->isBefore($today)) return 'Expired';
+                        return (int) $today->diffInDays($end) . ' Hari Lagi';
+                    })
+                    ->badge()
+                    ->color(function ($state) {
+                        if (!$state) return 'success';
+                        $end = \Carbon\Carbon::parse($state)->startOfDay();
+                        $today = now()->startOfDay();
+                        if ($end->isBefore($today)) return 'danger';
+                        if ((int) $today->diffInDays($end) <= 30) return 'warning';
+                        return 'success';
+                    })
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('status')
@@ -113,9 +136,6 @@ class EmployeeResource extends Resource
                         'danger' => 'Inactive',
                         'warning' => 'Resigned',
                     ]),
-            ])
-            ->filters([
-                //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

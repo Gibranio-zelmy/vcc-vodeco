@@ -67,6 +67,8 @@ class ProjectResource extends Resource
                     ->label('Nilai Proyek')
                     ->prefix('Rp')
                     ->numeric()
+                    ->mask(\Filament\Support\RawJs::make('$money($input, \',\', \'.\', 0)'))
+                    ->stripCharacters('.')
                     ->minValue(0)
                     ->required(),
                 

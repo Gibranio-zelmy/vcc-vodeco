@@ -39,6 +39,8 @@ class InvoiceResource extends Resource
                     ->label('Total Tagihan')
                     ->prefix('Rp')
                     ->numeric()
+                    ->mask(\Filament\Support\RawJs::make('$money($input, \',\', \'.\', 0)'))
+                    ->stripCharacters('.')
                     ->minValue(0)
                     ->required(),
                     
@@ -118,6 +120,8 @@ class InvoiceResource extends Resource
                             ->label('Nominal Masuk')
                             ->prefix('Rp')
                             ->numeric()
+                            ->mask(\Filament\Support\RawJs::make('$money($input, \',\', \'.\', 0)'))
+                            ->stripCharacters('.')
                             ->minValue(0)
                             ->required(),
                             

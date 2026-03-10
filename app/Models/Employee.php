@@ -18,4 +18,7 @@ class Employee extends Model
             ->withPivot('allocation_percentage')
             ->withTimestamps();
     }
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
 }
