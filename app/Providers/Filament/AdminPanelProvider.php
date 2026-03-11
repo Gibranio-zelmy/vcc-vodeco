@@ -39,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 'SISTEM KEAMANAN',
             ])
             // ==========================================
-            // INJEKSI MESIN PROFIL & 2FA MUTLAK
+            // INJEKSI MESIN PROFIL & 2FA MUTLAK (DUPLIKAT DIHANCURKAN)
             // ==========================================
             ->plugins([
                 BreezyCore::make()
@@ -49,12 +49,7 @@ class AdminPanelProvider extends PanelProvider
                         hasAvatars: true, // Aktifkan laci Foto Profil
                         slug: 'security-profile'
                     )
-                    // TAMBAHAN MUTLAK: Mendeklarasikan komponen yang aktif
-                    ->myProfileComponents([
-                        'personal_info' => \Jeffgreco13\FilamentBreezy\Livewire\PersonalInfo::class,
-                        'update_password' => \Jeffgreco13\FilamentBreezy\Livewire\UpdatePassword::class,
-                        'two_factor' => \Jeffgreco13\FilamentBreezy\Livewire\TwoFactorAuthentication::class,
-                    ])
+                    // Blok myProfileComponents dihapus total dari sini
                     ->enableTwoFactorAuthentication(
                         force: false,
                     )
