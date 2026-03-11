@@ -3,18 +3,36 @@
 namespace App\Models;
 
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar; // Mesin Foto Profil
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable; // Mesin 2FA
+use Illuminate\Support\Facades\Storage;
 use App\Traits\RecordsActivity; 
 
-class User extends Authenticatable implements FilamentUser
+// Tambahkan HasAvatar di samping FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
+    use HasFactory;
     use Notifiable;
     use RecordsActivity;
+    use TwoFactorAuthenticatable; // Injeksi DNA 2FA
 
     protected $guarded = [];
 
+    // ==========================================
+    // MESIN AVATAR / FOTO PROFIL
+    // ==========================================
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_url ? Storage::url($this->avatar_url) : null;
+    }
+
+    // ==========================================
+    // GEMBOK KASTA PANEL (VIP vs KULI) - ASLI MILIK BOS
+    // ==========================================
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
         // 1. Pintu Brankas VIP (Hanya Bos)
@@ -41,6 +59,10 @@ class User extends Authenticatable implements FilamentUser
 
         return false;
     }
+
+    // ==========================================
+    // RELASI DATABASE - ASLI MILIK BOS
+    // ==========================================
     public function employee() {
         return $this->hasOne(Employee::class);
     }

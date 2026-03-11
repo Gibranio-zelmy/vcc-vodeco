@@ -16,8 +16,9 @@ class LeaveRequestResource extends Resource
     protected static ?string $model = LeaveRequest::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days'; // Icon saya perbarui agar lebih relevan dengan kalender cuti
-    protected static ?string $navigationGroup = 'HRD & MANPOWER';
+    protected static ?string $navigationGroup = 'OPERATIONS';
     protected static ?string $navigationLabel = 'Approval Cuti';
+    protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
     {

@@ -11,10 +11,13 @@ use Filament\Tables\Table;
 class LogHistoryResource extends Resource
 {
     protected static ?string $model = LogHistory::class;
-    protected static ?string $navigationIcon = 'heroicon-o-video-camera';
+    
+    // UBAH MUTLAK: Ikon dan Label yang lebih rapi dan elegan
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationGroup = 'ANALYTICS';
     protected static ?int $navigationSort = 100;
-    protected static ?string $navigationLabel = 'Audit Log CCTV';
+    protected static ?string $navigationLabel = 'Log Historis';
+    protected static ?string $pluralModelLabel = 'Daftar Log Historis';
 
     // KUNCI MUTLAK: CCTV tidak boleh dimanipulasi (Read-Only)
     public static function canCreate(): bool { return false; }

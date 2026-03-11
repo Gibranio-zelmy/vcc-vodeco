@@ -34,7 +34,6 @@ class InvoiceResource extends Resource
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
                     
-                // PERBAIKAN FORM 1: Mengubah format error menjadi input angka murni
                 Forms\Components\TextInput::make('amount')
                     ->label('Total Tagihan')
                     ->prefix('Rp')
@@ -69,14 +68,14 @@ class InvoiceResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('invoice_number')
+                    ->label('No. Invoice')
+                    ->searchable(),
+                    
                 Tables\Columns\TextColumn::make('client.name')
                     ->label('Nama Klien')
                     ->searchable()
                     ->sortable(),
-                    
-                Tables\Columns\TextColumn::make('invoice_number')
-                    ->label('No. Invoice')
-                    ->searchable(),
                     
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Total Tagihan')
@@ -84,10 +83,21 @@ class InvoiceResource extends Resource
                     ->alignRight()
                     ->sortable(),
                     
-                Tables\Columns\TextColumn::make('issue_date')
-                    ->label('Tgl Terbit')
-                    ->date('d M Y')
-                    ->sortable(),
+                // TAMBAHAN MUTLAK: Telah Dibayar
+                Tables\Columns\TextColumn::make('paid_amount')
+                    ->label('Telah Dibayar')
+                    ->formatStateUsing(fn ($state) => 'Rp ' . number_format((float)$state, 0, ',', '.'))
+                    ->alignRight()
+                    ->color('success'),
+                    
+                // TAMBAHAN MUTLAK: Sisa Tagihan (Radar AR)
+                Tables\Columns\TextColumn::make('sisa')
+                    ->label('Sisa Tagihan')
+                    ->state(fn (Invoice $record): float => (float)$record->amount - (float)$record->paid_amount)
+                    ->formatStateUsing(fn ($state) => 'Rp ' . number_format((float)$state, 0, ',', '.'))
+                    ->alignRight()
+                    ->color('danger')
+                    ->weight('bold'),
                     
                 Tables\Columns\TextColumn::make('due_date')
                     ->label('Jatuh Tempo')
@@ -108,14 +118,19 @@ class InvoiceResource extends Resource
                 //
             ])
             ->actions([
-                // TOMBOL PEMBAYARAN AJAIB
+                // TOMBOL PEMBAYARAN AJAIB (Disinkronkan dengan Radar Kuli)
                 Tables\Actions\Action::make('catat_pembayaran')
                     ->label('Catat Bayar / DP')
                     ->icon('heroicon-o-banknotes')
                     ->color('success')
                     ->visible(fn (Invoice $record) => strtolower($record->status) !== 'paid') // Sembunyi jika sudah Lunas
-                    ->form([
-                        // PERBAIKAN FORM 2: Form pop-up pembayaran juga harus angka murni
+                    ->form(fn (Invoice $record) => [
+                        
+                        // Menampilkan Sisa Tagihan di dalam form agar Bos tidak perlu menebak
+                        Forms\Components\Placeholder::make('info_sisa')
+                            ->label('SISA YANG HARUS DIBAYAR:')
+                            ->content('Rp ' . number_format((float)($record->amount - $record->paid_amount), 0, ',', '.')),
+                            
                         Forms\Components\TextInput::make('amount_paid')
                             ->label('Nominal Masuk')
                             ->prefix('Rp')
@@ -123,6 +138,8 @@ class InvoiceResource extends Resource
                             ->mask(\Filament\Support\RawJs::make('$money($input, \',\', \'.\', 0)'))
                             ->stripCharacters('.')
                             ->minValue(0)
+                            ->maxValue((float)($record->amount - $record->paid_amount)) // Gembok: Tidak bisa bayar lebih dari sisa
+                            ->default((float)($record->amount - $record->paid_amount))
                             ->required(),
                             
                         Forms\Components\DatePicker::make('payment_date')
@@ -135,24 +152,27 @@ class InvoiceResource extends Resource
                             ->required(),
                     ])
                     ->action(function (Invoice $record, array $data) {
+                        $nominal = (float) $data['amount_paid'];
+                        
                         // 1. Catat ke brankas Transaksi otomatis
                         \App\Models\Transaction::create([
-                            'type' => 'Income',
-                            'category' => 'Project', // Kategori default
-                            'amount' => $data['amount_paid'],
+                            'type' => 'income',
+                            'category' => 'project',
+                            'amount' => $nominal,
                             'transaction_date' => $data['payment_date'],
+                            'description' => $data['notes'] . ' | Invoice: ' . $record->invoice_number,
                             'invoice_id' => $record->id, 
                         ]);
 
-                        // 2. Hitung total uang yang sudah masuk untuk invoice ini
-                        $totalDibayar = $record->transactions()->sum('amount');
-                        
-                        // 3. Update status otomatis
-                        if ($totalDibayar >= $record->amount) {
-                            $record->update(['status' => 'Paid']);
-                        } else {
-                            $record->update(['status' => 'Partial']);
-                        }
+                        // 2. Kalkulasi Mutlak
+                        $totalBayarBaru = $record->paid_amount + $nominal;
+                        $status_baru = ($totalBayarBaru >= $record->amount) ? 'Paid' : 'Partial';
+
+                        // 3. Update invoice 
+                        $record->update([
+                            'paid_amount' => $totalBayarBaru,
+                            'status' => $status_baru
+                        ]);
                     })
                     ->successNotificationTitle('Pembayaran & Transaksi Berhasil Dicatat!'),
                     

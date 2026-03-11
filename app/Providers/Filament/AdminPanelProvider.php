@@ -17,6 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -29,16 +30,36 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->login()
             ->brandName('VCC TERMINAL') // Identitas Kokpit
-            ->userMenuItems([
-                'profile' => \Filament\Navigation\MenuItem::make()
-                    ->label('Profil CEO')
-                    ->url(fn (): string => '#') // Nanti kita buatkan halaman profil khusus jika Bos mau
-                    ->icon('heroicon-m-user-circle'),
-                'logout' => \Filament\Navigation\MenuItem::make()
-                    ->label('Log Out Terminal')
-                    ->icon('heroicon-m-arrow-right-on-rectangle')
-                    ->color('danger'),
+            ->navigationGroups([
+                'DATABASE',
+                'CASHFLOW',
+                'OPERATIONS',
+                'ANALYTICS',
+                'LEGAL & SOP',
+                'SISTEM KEAMANAN',
             ])
+            // ==========================================
+            // INJEKSI MESIN PROFIL & 2FA MUTLAK
+            // ==========================================
+            ->plugins([
+                BreezyCore::make()
+                    ->myProfile(
+                        shouldRegisterUserMenu: true, 
+                        shouldRegisterNavigation: false, 
+                        hasAvatars: true, // Aktifkan laci Foto Profil
+                        slug: 'security-profile'
+                    )
+                    // TAMBAHAN MUTLAK: Mendeklarasikan komponen yang aktif
+                    ->myProfileComponents([
+                        'personal_info' => \Jeffgreco13\FilamentBreezy\Livewire\PersonalInfo::class,
+                        'update_password' => \Jeffgreco13\FilamentBreezy\Livewire\UpdatePassword::class,
+                        'two_factor' => \Jeffgreco13\FilamentBreezy\Livewire\TwoFactorAuthentication::class,
+                    ])
+                    ->enableTwoFactorAuthentication(
+                        force: false,
+                    )
+            ])
+            // (Blok userMenuItems dihapus mutlak karena diambil alih Breezy)
             ->colors([
                 'primary' => \Filament\Support\Colors\Color::Emerald, // Hijau Terminal bawaan Bos
                 'success' => \Filament\Support\Colors\Color::Emerald, // Hijau untuk Profit/Lunas
