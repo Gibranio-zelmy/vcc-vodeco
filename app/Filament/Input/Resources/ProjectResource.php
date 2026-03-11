@@ -20,8 +20,8 @@ class ProjectResource extends Resource
     protected static ?string $navigationLabel = 'Input Proyek Baru';
     protected static ?string $pluralModelLabel = 'Input Proyek';
     protected static ?string $slug = 'input-proyek';
-    protected static ?string $navigationGroup = '1. FASE SERVER & FINANCE';
-    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationGroup = 'FASE 1: KLIEN & PESANAN';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {

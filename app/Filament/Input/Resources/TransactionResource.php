@@ -20,7 +20,7 @@ class TransactionResource extends Resource
     protected static ?string $navigationLabel = 'Input Pengeluaran'; // Pertegas nama loket
     protected static ?string $pluralModelLabel = 'Input Pengeluaran';
     protected static ?string $slug = 'input-pengeluaran';
-    protected static ?string $navigationGroup = '2. FASE FINANCE';
+    protected static ?string $navigationGroup = 'FASE 2: TAGIHAN & KASIR';
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form

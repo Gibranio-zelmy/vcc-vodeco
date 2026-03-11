@@ -21,7 +21,7 @@ class ClientResource extends Resource
     protected static ?string $navigationLabel = 'Input Klien Baru';
     protected static ?string $pluralModelLabel = 'Input Klien';
     protected static ?string $slug = 'input-klien';
-    protected static ?string $navigationGroup = '1. FASE FINANCE, SERVER & ADMIN BILLING';
+    protected static ?string $navigationGroup = 'FASE 1: KLIEN & PESANAN';
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form

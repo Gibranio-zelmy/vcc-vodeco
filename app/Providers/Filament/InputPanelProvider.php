@@ -28,6 +28,12 @@ class InputPanelProvider extends PanelProvider
             ->databaseNotifications() 
             ->login()
             ->brandName('VCC DATA ENTRY') // Nama loket pembeda
+            ->navigationGroups([
+                'PANDUAN & SOP',
+                'FASE 1: KLIEN & PESANAN',
+                'FASE 2: TAGIHAN & KASIR',
+                'FASE 3: HRD & MANPOWER',
+            ])
             ->colors([
                 'primary' => Color::Blue, // Warna Biru Karyawan (Pembeda dari Hijau Bos)
             ])

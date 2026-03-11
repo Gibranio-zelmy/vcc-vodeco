@@ -7,8 +7,21 @@ use Filament\Pages\Page;
 class PanduanOperasional extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
-    protected static ?string $navigationLabel = 'Buku Panduan SOP';
-    protected static ?string $title = 'SOP Mutlak Data Entry VCC';
-    protected static ?int $navigationSort = -1; // Angka minus memaksa menu ini berada di paling atas mutlak
     protected static string $view = 'filament.input.pages.panduan-operasional';
+    protected static ?string $navigationGroup = 'PANDUAN & SOP';
+    protected static ?string $navigationLabel = 'Buku Panduan SOP';
+
+    // MEMBUAT JUDUL HALAMAN ADAPTIF SESUAI ROLE KASTA
+    public function getTitle(): string
+    {
+        $role = auth()->user()->role ?? '';
+
+        if ($role === 'karyawan') {
+            return 'Panduan Administrasi Karyawan';
+        } elseif ($role === 'hrd') {
+            return 'SOP Mutlak Departemen HRD';
+        }
+
+        return 'SOP Mutlak Data Entry VCC'; // Default untuk Operator & Admin
+    }
 }

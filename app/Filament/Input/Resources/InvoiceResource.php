@@ -21,7 +21,7 @@ class InvoiceResource extends Resource
     protected static ?string $navigationLabel = 'Meja Kasir (Invoice)';
     protected static ?string $pluralModelLabel = 'Meja Kasir (Invoice)';
     protected static ?string $slug = 'input-invoice';
-    protected static ?string $navigationGroup = '2. FASE FINANCE';
+    protected static ?string $navigationGroup = 'FASE 2: TAGIHAN & KASIR';
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form

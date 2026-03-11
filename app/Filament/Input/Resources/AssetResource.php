@@ -22,8 +22,8 @@ class AssetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
     protected static ?string $navigationLabel = 'Meja Admin Billing';
-    protected static ?string $navigationGroup = '1. FASE SALES & ADMIN';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'FASE 1: KLIEN & PESANAN';
+    protected static ?int $navigationSort = 1;
     protected static ?string $pluralModelLabel = 'Meja Admin Billing';
     protected static ?string $slug = 'input-aset';
 

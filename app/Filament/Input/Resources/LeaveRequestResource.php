@@ -15,9 +15,9 @@ class LeaveRequestResource extends Resource
 {
     protected static ?string $model = LeaveRequest::class;
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
-    protected static ?string $navigationGroup = 'HRD & MANPOWER';
     protected static ?string $navigationLabel = 'Pengajuan Cuti';
     protected static ?string $pluralModelLabel = 'Daftar Pengajuan Cuti';
+    protected static ?string $navigationGroup = 'FASE 3: HRD & MANPOWER';
 
     public static function form(Form $form): Form
     {
