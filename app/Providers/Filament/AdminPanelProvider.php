@@ -58,14 +58,16 @@ class AdminPanelProvider extends PanelProvider
             // (Blok userMenuItems dihapus mutlak karena diambil alih Breezy)
             // Palet warna Vodeco: ungu gelap sebagai aksen utama
             ->colors([
-                'primary' => Color::Violet,   // Aksen utama Vodeco (ungu)
+                'primary' => '#8b5cf6',  // Aksen utama Vodeco (ungu)
                 'success' => Color::Emerald,  // Tetap hijau untuk profit / sukses
                 'danger'  => Color::Rose,     // Merah lembut untuk warning berat
                 'warning' => Color::Amber,    // Kuning-oranye untuk DP / pending
                 'gray'    => Color::Zinc,     // Abu gelap untuk background
+                'info'    => Color::Blue,
             ])
             // Font fintech modern yang lebih bersih daripada monospace
             ->font('Inter')
+            ->sidebarCollapsibleOnDesktop()
             ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark) // Dark Mode Abadi
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

@@ -54,6 +54,7 @@ class InputPanelProvider extends PanelProvider
             ])
             // Samakan font dengan kokpit agar branding konsisten
             ->font('Inter')
+            ->sidebarCollapsibleOnDesktop()
             ->defaultThemeMode(\Filament\Enums\ThemeMode::Light) // Terang, agar beda dengan kokpit Dark Mode Bos
             
             // PENTING: Mengarahkan folder resource ke folder khusus "Input" agar tidak bercampur dengan folder "Admin"
