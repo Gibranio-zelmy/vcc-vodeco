@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Jeffgreco13\FilamentBreezy\BreezyCore;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -34,8 +35,20 @@ class InputPanelProvider extends PanelProvider
                 'FASE 2: TAGIHAN & KASIR',
                 'FASE 3: HRD & MANPOWER',
             ])
+            ->plugins([
+                BreezyCore::make()
+                    ->myProfile(
+                        shouldRegisterUserMenu: true, 
+                        shouldRegisterNavigation: false, 
+                        hasAvatars: true, 
+                        slug: 'security-profile'
+                    )
+                    ->enableTwoFactorAuthentication(
+                        force: false, 
+                    )
+            ])
             ->colors([
-                'primary' => Color::Blue, // Warna Biru Karyawan (Pembeda dari Hijau Bos)
+                'primary' => Color::Blue, 
             ])
             ->font('JetBrains Mono')
             ->defaultThemeMode(\Filament\Enums\ThemeMode::Light) // Terang, agar beda dengan kokpit Dark Mode Bos
