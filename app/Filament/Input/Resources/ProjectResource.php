@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 class ProjectResource extends Resource
 {
     protected static ?string $model = Project::class;
+    
     public static function canViewAny(): bool
     {
         return auth()->user()->role === 'operator';
@@ -32,7 +33,7 @@ class ProjectResource extends Resource
                     ->required()
                     ->maxLength(255),
                     
-                    Forms\Components\Select::make('client_id')
+                Forms\Components\Select::make('client_id')
                     ->label('Nama Klien')
                     ->relationship('client', 'name')
                     ->searchable()
@@ -61,7 +62,7 @@ class ProjectResource extends Resource
                     ->default('Queue')
                     ->required(),
                 
-                    Forms\Components\TextInput::make('project_value')
+                Forms\Components\TextInput::make('project_value')
                     ->label('Nilai Proyek (Estimasi/Deal)')
                     ->prefix('Rp')
                     ->numeric()
@@ -71,25 +72,32 @@ class ProjectResource extends Resource
                     ->required(),
                 
                 Forms\Components\DatePicker::make('start_date')
-                    ->label('Tanggal Mulai'),
+                    ->label('Tanggal Mulai')
+                    ->required(),
                     
                 Forms\Components\DatePicker::make('deadline')
-                    ->label('Tenggat Waktu (Deadline)'),
+                    ->label('Tenggat Waktu (Deadline)')
+                    ->required()
+                    ->afterOrEqual('start_date')
+                    ->validationMessages([
+                        'after_or_equal' => 'Kesalahan! Deadline tidak boleh lebih cepat dari Tanggal Mulai.',
+                    ]),
                     
-                // Fitur untuk langsung mendelegasikan kuli (operator)
-                \Filament\Forms\Components\Repeater::make('employees')
-                    ->relationship()
+                Forms\Components\Repeater::make('employeeAllocations')
+                    ->relationship('employeeAllocations') 
+                    ->label('Tim Proyek & Alokasi')
                     ->schema([
-                        \Filament\Forms\Components\Select::make('employee_id')
+                        Forms\Components\Select::make('employee_id')
+                            ->label('Pilih Karyawan')
                             ->options(\App\Models\Employee::pluck('name', 'id'))
-                            ->required()
-                            ->label('Pilih Operator (Tim)'),
-                            
-                        \Filament\Forms\Components\TextInput::make('allocation_percentage')
+                            ->searchable()
+                            ->required(),
+                                
+                        Forms\Components\TextInput::make('allocation_percentage')
+                            ->label('Alokasi Waktu (%)')
                             ->numeric()
                             ->default(100)
-                            ->required()
-                            ->label('Beban Kerja (%)')
+                            ->required(),
                     ])
                     ->columns(2)
                     ->columnSpanFull(),

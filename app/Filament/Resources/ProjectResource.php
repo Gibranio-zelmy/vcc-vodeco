@@ -74,10 +74,16 @@ class ProjectResource extends Resource
                     ->required(),
                 
                 Forms\Components\DatePicker::make('start_date')
-                    ->label('Tanggal Mulai'),
+                    ->label('Tanggal Mulai')
+                    ->required(),
                     
-                Forms\Components\DatePicker::make('deadline')
-                    ->label('Tenggat Waktu (Deadline)'),
+                    Forms\Components\DatePicker::make('deadline')
+                    ->label('Tenggat Waktu (Deadline)')
+                    ->required()
+                    ->afterOrEqual('start_date')
+                    ->validationMessages([
+                        'after_or_equal' => 'Kesalahan! Deadline tidak boleh lebih cepat dari Tanggal Mulai.',
+                    ]),
                     
                 Forms\Components\Repeater::make('employeeAllocations')
                 ->relationship('employeeAllocations') // <-- MENGIKUTI JALUR BARU

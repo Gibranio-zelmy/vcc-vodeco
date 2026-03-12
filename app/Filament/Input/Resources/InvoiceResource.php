@@ -46,7 +46,11 @@ class InvoiceResource extends Resource
                     
                 Forms\Components\DatePicker::make('due_date')
                     ->label('Jatuh Tempo')
-                    ->required(),
+                    ->required()
+                    ->afterOrEqual('issue_date')
+                    ->validationMessages([
+                        'after_or_equal' => 'Peringatan! Jatuh Tempo harus setelah atau sama dengan Tanggal Terbit.',
+                    ]),
                     
                 Forms\Components\TextInput::make('amount')
                     ->label('Total Tagihan (IDR)')

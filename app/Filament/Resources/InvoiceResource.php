@@ -50,7 +50,11 @@ class InvoiceResource extends Resource
                     
                 Forms\Components\DatePicker::make('due_date')
                     ->label('Jatuh Tempo')
-                    ->required(),
+                    ->afterOrEqual('issue_date')
+                    ->required()
+                    ->validationMessages([
+                        'after_or_equal' => 'Peringatan! Jatuh Tempo harus setelah atau sama dengan Tanggal Terbit.',
+                    ]),
                     
                 Forms\Components\Select::make('status')
                     ->label('Status')
