@@ -79,20 +79,22 @@ class ProjectResource extends Resource
                 Forms\Components\DatePicker::make('deadline')
                     ->label('Tenggat Waktu (Deadline)'),
                     
-                \Filament\Forms\Components\Repeater::make('employees')
-                    ->relationship()
-                    ->schema([
-                        \Filament\Forms\Components\Select::make('employee_id')
-                            ->options(\App\Models\Employee::pluck('name', 'id'))
-                            ->required()
-                            ->label('Pilih Operator (Tim)'),
+                Forms\Components\Repeater::make('employeeAllocations')
+                ->relationship('employeeAllocations') // <-- MENGIKUTI JALUR BARU
+                ->label('Tim Proyek & Alokasi')
+                ->schema([
+                    Forms\Components\Select::make('employee_id')
+                        ->label('Pilih Karyawan')
+                        ->options(\App\Models\Employee::pluck('name', 'id'))
+                        ->searchable()
+                        ->required(),
                             
-                        \Filament\Forms\Components\TextInput::make('allocation_percentage')
-                            ->numeric()
-                            ->default(100)
-                            ->required()
-                            ->label('Beban Kerja (%)')
-                    ])
+                    Forms\Components\TextInput::make('allocation_percentage')
+                        ->label('Alokasi Waktu (%)')
+                        ->numeric()
+                        ->default(100)
+                        ->required(),
+                ])
                     ->columns(2)
                     ->columnSpanFull(),
             ]);

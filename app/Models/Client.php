@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use \App\Traits\RecordsActivity;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Client extends Model
 {
     protected $guarded = [];
     use RecordsActivity;
+    use HasFactory, SoftDeletes;
 
     // Fungsi Gaib: Bekerja otomatis sesaat sebelum data disimpan ke database
     protected static function booted()

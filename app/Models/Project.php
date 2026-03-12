@@ -21,4 +21,9 @@ class Project extends Model
         // Menghubungkan proyek dengan tim beserta radar persentase waktunya
         return $this->belongsToMany(Employee::class)->withPivot('allocation_percentage')->withTimestamps();
     }
+
+    public function employeeAllocations()
+    {
+        return $this->hasMany(EmployeeProject::class, 'project_id');
+    }
 }

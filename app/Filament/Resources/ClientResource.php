@@ -88,14 +88,17 @@ class ClientResource extends Resource
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc') 
-            ->filters([])
+            ->filters([Tables\Filters\TrashedFilter::make(),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+                Tables\Actions\RestoreBulkAction::make(),
             ]);
     }
 
