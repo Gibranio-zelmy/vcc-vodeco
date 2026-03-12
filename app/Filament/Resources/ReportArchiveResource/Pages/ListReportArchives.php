@@ -34,15 +34,12 @@ class ListReportArchives extends ListRecords
                         ->default(now()->year)->required(),
                 ])
                 ->action(function (array $data) {
-                    // 1. Catat di Database (Histori)
+                    // 1. Catat di Database (Histori) tanpa auto-download
                     ReportArchive::create([
                         'title' => "Laporan Eksekutif Vodeco - {$data['month']}/{$data['year']}",
                         'month' => $data['month'],
                         'year' => $data['year'],
                     ]);
-
-                    // 2. Langsung Download PDF-nya
-                    return ReportArchiveResource::generatePdf($data['month'], $data['year']);
                 }),
         ];
     }

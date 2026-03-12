@@ -26,6 +26,7 @@ class InputPanelProvider extends PanelProvider
         return $panel
             ->id('input')
             ->path('input')
+            ->favicon(asset('favicon.png'))
             ->databaseNotifications() 
             ->login()
             ->brandName('VCC DATA ENTRY') // Nama loket pembeda
@@ -47,10 +48,12 @@ class InputPanelProvider extends PanelProvider
                         force: false, 
                     )
             ])
+            // Warna utama panel kuli disatukan dengan brand Vodeco (ungu)
             ->colors([
-                'primary' => Color::Blue, 
+                'primary' => Color::Violet,
             ])
-            ->font('JetBrains Mono')
+            // Samakan font dengan kokpit agar branding konsisten
+            ->font('Inter')
             ->defaultThemeMode(\Filament\Enums\ThemeMode::Light) // Terang, agar beda dengan kokpit Dark Mode Bos
             
             // PENTING: Mengarahkan folder resource ke folder khusus "Input" agar tidak bercampur dengan folder "Admin"

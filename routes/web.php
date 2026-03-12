@@ -7,6 +7,6 @@ Route::get('/', function () {
     if (auth()->check()) {
         return auth()->user()->role === 'admin' ? redirect('/admin') : redirect('/input');
     }
-    // Jika belum login, paksa arahkan ke halaman Login Kuli
-    return redirect('/input'); 
+    // Jika belum login, paksa arahkan ke halaman Login Kuli secara eksplisit
+    return redirect('/input/login'); 
 });

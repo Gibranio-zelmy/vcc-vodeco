@@ -27,6 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->favicon(asset('favicon.png'))
             ->databaseNotifications()
             ->login()
             ->brandName('VCC TERMINAL') // Identitas Kokpit
@@ -55,14 +56,16 @@ class AdminPanelProvider extends PanelProvider
                     )
             ])
             // (Blok userMenuItems dihapus mutlak karena diambil alih Breezy)
+            // Palet warna Vodeco: ungu gelap sebagai aksen utama
             ->colors([
-                'primary' => \Filament\Support\Colors\Color::Emerald, // Hijau Terminal bawaan Bos
-                'success' => \Filament\Support\Colors\Color::Emerald, // Hijau untuk Profit/Lunas
-                'danger'  => \Filament\Support\Colors\Color::Rose,    // Merah untuk Piutang/Loss
-                'warning' => \Filament\Support\Colors\Color::Amber,   // Oranye untuk DP/Pending
-                'gray'    => \Filament\Support\Colors\Color::Zinc,    // Latar gelap solid
+                'primary' => Color::Violet,   // Aksen utama Vodeco (ungu)
+                'success' => Color::Emerald,  // Tetap hijau untuk profit / sukses
+                'danger'  => Color::Rose,     // Merah lembut untuk warning berat
+                'warning' => Color::Amber,    // Kuning-oranye untuk DP / pending
+                'gray'    => Color::Zinc,     // Abu gelap untuk background
             ])
-            ->font('JetBrains Mono') // Font presisi tinggi
+            // Font fintech modern yang lebih bersih daripada monospace
+            ->font('Inter')
             ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark) // Dark Mode Abadi
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
