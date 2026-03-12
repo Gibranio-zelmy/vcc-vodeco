@@ -44,10 +44,12 @@ class AssetResource extends Resource
                         Forms\Components\Select::make('category')
                             ->label('Kategori Layanan')
                             ->options([
+                                'Website' => 'Website (Dev / Domain / Hosting)',
+                                'Ads' => 'Digital Ads (Meta / Google)',
+                                'Design' => 'Creative Design (Logo / UI / Compro)',
                                 'SEO' => 'SEO Specialist',
-                                'Design' => 'Creative Design (Logo/Compro)',
-                                'Marketing' => 'Digital Ads (Meta/Google)',
-                                'Web' => 'Website Asset (Domain/Hosting)',
+                                'Maintenance' => 'Maintenance / Server',
+                                'Lain-lain' => 'Lain-lain',
                             ])->required(),
                         Forms\Components\TextInput::make('platform')
                             ->placeholder('Meta/Google/Drive/Figma'),

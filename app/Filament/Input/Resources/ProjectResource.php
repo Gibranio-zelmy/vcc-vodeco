@@ -42,11 +42,12 @@ class ProjectResource extends Resource
                 Forms\Components\Select::make('type')
                     ->label('Tipe Proyek')
                     ->options([
-                        'Website' => 'Website Development',
-                        'Ads' => 'Digital Ads (Meta/Google)',
-                        'Design' => 'Creative Design (Logo/UI)',
+                        'Website' => 'Website (Dev / Domain / Hosting)',
+                        'Ads' => 'Digital Ads (Meta / Google)',
+                        'Design' => 'Creative Design (Logo / UI / Compro)',
                         'SEO' => 'SEO Specialist',
                         'Maintenance' => 'Maintenance / Server',
+                        'Lain-lain' => 'Lain-lain',
                     ])
                     ->searchable()
                     ->required(),

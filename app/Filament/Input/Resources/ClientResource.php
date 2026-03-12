@@ -7,37 +7,31 @@ use App\Models\Client;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
 
 class ClientResource extends Resource
 {
     protected static ?string $model = Client::class;
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->role === 'operator';
-    }
-
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    protected static ?string $navigationLabel = 'Input Klien Baru';
-    protected static ?string $pluralModelLabel = 'Input Klien';
-    protected static ?string $slug = 'input-klien';
     protected static ?string $navigationGroup = 'FASE 1: KLIEN & PESANAN';
-    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Section::make('Informasi Dasar')
-                    ->description('Pastikan data klien utama sudah benar sebelum dikirim ke radar VIP.')
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label('Nama Lengkap')
                             ->required(),
                         Forms\Components\TextInput::make('company_name')
                             ->label('Nama Perusahaan'),
+                        Forms\Components\TextInput::make('city')
+                            ->label('Asal Kota')
+                            ->placeholder('Contoh: Jakarta, Surabaya, dll.'),
                         Forms\Components\DatePicker::make('join_date')
-                            ->label('Tanggal Bergabung')
+                            ->label('Tgl Bergabung')
                             ->default(now())
                             ->required(),
                     ])->columns(2),
@@ -56,12 +50,50 @@ class ClientResource extends Resource
             ]);
     }
 
-    // FUNGSI TABLE DIHAPUS MUTLAK - Hanya untuk Input Data
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('client_code')
+                    ->label('ID Klien')
+                    ->searchable()
+                    ->sortable()
+                    ->badge()
+                    ->color('primary'),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nama Klien')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('company_name')
+                    ->label('Perusahaan')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('city')
+                    ->label('Asal Kota')
+                    ->searchable()
+                    ->sortable()
+                    ->badge()
+                    ->color('gray'),
+                Tables\Columns\TextColumn::make('whatsapp')
+                    ->label('WhatsApp'),
+                Tables\Columns\TextColumn::make('join_date')
+                    ->label('Tgl Bergabung')
+                    ->date()
+                    ->sortable(),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->filters([])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ]);
+    }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\CreateClient::route('/'), // Fokus terkunci ke Form Create
+            'index' => Pages\ListClients::route('/'),
+            'create' => Pages\CreateClient::route('/create'),
+            'edit' => Pages\EditClient::route('/{record}/edit'),
         ];
     }
 }

@@ -13,7 +13,7 @@ use Filament\Tables\Table;
 class ClientResource extends Resource
 {
     protected static ?string $model = Client::class;
-    protected static ?string $navigationIcon = 'heroicon-o-users'; // Icon lebih relevan
+    protected static ?string $navigationIcon = 'heroicon-o-users'; 
     protected static ?string $navigationGroup = 'DATABASE';
     protected static ?int $navigationSort = 1;
 
@@ -28,10 +28,14 @@ class ClientResource extends Resource
                             ->required(),
                         Forms\Components\TextInput::make('company_name')
                             ->label('Nama Perusahaan'),
+                        Forms\Components\TextInput::make('city')
+                            ->label('Asal Kota')
+                            ->placeholder('Contoh: Jakarta, Surabaya, dll.'),
                         Forms\Components\DatePicker::make('join_date')
+                            ->label('Tgl Bergabung')
                             ->default(now())
                             ->required(),
-                    ])->columns(2),
+                    ])->columns(2), // Dibagi 2 kolom agar rapi
 
                 Forms\Components\Section::make('Kontak & Komunikasi')
                     ->schema([
@@ -42,7 +46,7 @@ class ClientResource extends Resource
                             ->label('Nomor WhatsApp')
                             ->tel()
                             ->placeholder('0812xxxx')
-                            ->prefix('+62'), // Biar standar Indonesia
+                            ->prefix('+62'), 
                     ])->columns(2),
             ]);
     }
@@ -65,9 +69,15 @@ class ClientResource extends Resource
                     ->label('Perusahaan')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('city') // Laci kota di tabel
+                    ->label('Asal Kota')
+                    ->searchable()
+                    ->sortable()
+                    ->badge() // Beri efek badge agar kota terlihat mencolok
+                    ->color('gray'),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
-                    ->copyable() // Bisa langsung copy email sekali klik
+                    ->copyable() 
                     ->sortable(),
                 Tables\Columns\TextColumn::make('whatsapp')
                     ->label('WhatsApp')
@@ -77,7 +87,7 @@ class ClientResource extends Resource
                     ->date()
                     ->sortable(),
             ])
-            ->defaultSort('created_at', 'desc') // <-- OTOMATIS TERBARU DI ATAS
+            ->defaultSort('created_at', 'desc') 
             ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),

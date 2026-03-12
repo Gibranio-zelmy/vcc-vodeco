@@ -36,10 +36,12 @@ class AssetResource extends Resource
                             ->required(),
                         Forms\Components\Select::make('category')
                             ->options([
-                                'SEO' => 'SEO Specialist',
-                                'Design' => 'Creative Design (Logo/Compro)',
-                                'Marketing' => 'Digital Ads (Meta/Google)',
-                                'Web' => 'Website Asset (Domain/Hosting)',
+                            'Website' => 'Website (Dev / Domain / Hosting)',
+                            'Ads' => 'Digital Ads (Meta / Google)',
+                            'Design' => 'Creative Design (Logo / UI / Compro)',
+                            'SEO' => 'SEO Specialist',
+                            'Maintenance' => 'Maintenance / Server',
+                            'Lain-lain' => 'Lain-lain',
                             ])->required(),
                         Forms\Components\TextInput::make('platform')
                             ->placeholder('Meta/Google/Drive/Figma'),
