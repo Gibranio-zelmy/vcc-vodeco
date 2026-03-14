@@ -22,6 +22,18 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     protected $guarded = [];
 
+    // ==============================================================
+    // GEMBOK LAPIS 2: TOLAK PEMBUATAN/UPDATE AKUN DENGAN EMAIL ASING
+    // ==============================================================
+    protected static function booted(): void
+    {
+        static::saving(function ($user) {
+            if (!str_ends_with($user->email, '@vodeco.co.id')) {
+                throw new \Exception('SABOTASE DICEGAT: Hanya email resmi @vodeco.co.id yang diizinkan masuk ke VCC Terminal!');
+            }
+        });
+    }
+
     // ==========================================
     // MESIN AVATAR / FOTO PROFIL
     // ==========================================
@@ -31,10 +43,16 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     }
 
     // ==========================================
-    // GEMBOK KASTA PANEL (VIP vs KULI) - ASLI MILIK BOS
+    // GEMBOK KASTA PANEL (VIP vs KULI) + WHITELIST DOMAIN
     // ==========================================
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
+        // GEMBOK MUTLAK LAPIS 1: Wajib domain @vodeco.co.id
+        // Jika bukan vodeco.co.id, tendang keluar detik ini juga!
+        if (!str_ends_with($this->email, '@vodeco.co.id')) {
+            return false;
+        }
+
         // 1. Pintu Brankas VIP (Hanya Bos)
         if ($panel->getId() === 'admin') {
             return $this->role === 'admin';
@@ -47,7 +65,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
                 return true;
             }
 
-            // GEMBOK MUTLAK: Cek apakah akun ini terdaftar di HRD & statusnya 'Active'
+            // Cek apakah akun ini terdaftar di HRD & statusnya 'Active'
             $isOfficialEmployee = $this->employee()->where('status', 'Active')->exists();
             
             if (!$isOfficialEmployee) {
@@ -67,7 +85,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return $this->hasOne(Employee::class);
     }
 
-    // RELASI MUTLAK KE PENGAJUAN CUTI (Koreksi kurung tutup nyasar)
+    // RELASI MUTLAK KE PENGAJUAN CUTI
     public function leaveRequests() 
     { 
         return $this->hasMany(LeaveRequest::class); 
